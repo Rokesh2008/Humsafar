@@ -5,16 +5,20 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import fi.iki.elonen.NanoHTTPD
 
 class HumsafarViewModel(app:Application):AndroidViewModel(app) {
     private val engine=FusionEngine(app)
+    private val server=LocalReportServer { reporter, text, language -> submit(reporter, text, language) }
     val reports=mutableStateListOf<RawReport>()
     val events=mutableStateListOf<FusedEvent>()
     var processing=androidx.compose.runtime.mutableStateOf(false)
     var modelReady=androidx.compose.runtime.mutableStateOf(engine.modelReady())
     var notice=androidx.compose.runtime.mutableStateOf("")
+    var serverRunning=androidx.compose.runtime.mutableStateOf(false)
 
     init { seed() }
+    fun toggleServer() { if (serverRunning.value) { server.stop(); serverRunning.value=false } else runCatching { server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false); serverRunning.value=true }.onFailure { notice.value="Could not start local server: ${it.message}" } }
     private fun seed(){
         listOf(
             RawReport("r_001","Reporter 1","Parking at Gate 3 is completely full","en"),
@@ -28,5 +32,5 @@ class HumsafarViewModel(app:Application):AndroidViewModel(app) {
     fun submit(reporter:String,text:String,language:String){if(text.isBlank())return;processing.value=true;notice.value="Local fusion engine is reading the report…";viewModelScope.launch{val result=engine.analyze(text,events);val report=RawReport(reporter=reporter,text=text,language=language,category=result.category,key=result.key,canonical=result.canonical,contradiction=result.contradiction,urgency=result.urgency);addLocal(report);processing.value=false;notice.value="Signal fused into the crowd feed."}}
     private fun addLocal(report:RawReport){reports.add(report);val key=report.key?:report.category?:"other";val index=events.indexOfFirst{it.id==key};if(index<0){events.add(FusedEvent(key,report.category?:"other",report.canonical?:report.text,"Keep an eye on this area",if(report.contradiction).38f else .57f,listOf(report)))}else{val old=events[index];val evidence=old.evidence+report;val contradictions=evidence.count{it.contradiction};val positive=evidence.size-contradictions;val confidence=(.5f+.07f*positive-.12f*contradictions).coerceIn(.38f,.98f);events[index]=old.copy(confidence=confidence,evidence=evidence)}}
     fun reset(){reports.clear();events.clear();notice.value="Room reset. Add the first observation."}
-    override fun onCleared(){engine.close();super.onCleared()}
+    override fun onCleared(){server.stop();engine.close();super.onCleared()}
 }

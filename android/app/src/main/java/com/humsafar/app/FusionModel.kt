@@ -16,9 +16,32 @@ data class FusedEvent(val id:String, val category:String, val canonical:String, 
 data class FusionResult(val category:String, val key:String, val canonical:String, val action:String, val contradiction:Boolean=false, val urgency:Boolean=false)
 
 class FusionEngine(context:Context) {
-    private val modelFile=File(context.filesDir, "humsafar/gemma-3-1b-it-int4.task")
+    // Keep the model outside the APK; the 1GB+ asset is copied to app storage during
+    // device setup so the demo build stays small and installable.
+    private val modelFile=File(context.filesDir, "humsafar/gemma-2b-it-int4.task")
     private var inference:LlmInference?=null
-    private val prompt="""You are a crowd-report fusion engine for an offline event-safety app.\nClassify one report into parking, entry, food, washroom, safety, or other. Normalize it to English, match approximate location, and detect contradiction. Respond with ONLY JSON: {\"category\":\"...\",\"key\":\"...\",\"canonical\":\"...\",\"action\":\"...\",\"contradiction\":false,\"urgency\":false}"""
+    private val prompt="""You are the crowd-report fusion engine for an offline event-safety app.
+Translate the new report to English if needed. Classify it into exactly one category:
+parking, entry, food, washroom, safety, other.
+Use the same key for reports about the same category and approximate location.
+Merge corroborating reports. Mark contradiction=true when a report disputes an existing event.
+For a new event use confidence 0.55. For a merge use min(0.5 + 0.07 * evidence_count, 0.98).
+Safety reports set urgency=true and action to alert event safety staff immediately.
+
+Worked examples:
+New report: Gate 3 parking is completely full
+Existing events: []
+Output: {"category":"parking","key":"gate 3-parking","canonical":"Gate 3 parking is full","action":"Try another gate","contradiction":false,"urgency":false}
+New report: Gate 3 pe parking bhar gaya hai
+Existing events: [Gate 3 parking is full]
+Output: {"category":"parking","key":"gate 3-parking","canonical":"Gate 3 parking is full","action":"Try another gate","contradiction":false,"urgency":false}
+New report: Gate 3 parking still has some space near the back
+Existing events: [Gate 3 parking is full]
+Output: {"category":"parking","key":"gate 3-parking","canonical":"Gate 3 parking has some space near the back","action":"Check the rear of the parking area","contradiction":true,"urgency":false}
+
+Respond with ONLY one JSON object, no markdown:
+{"category":"...","key":"...","canonical":"...","action":"...","contradiction":false,"urgency":false}
+"""
 
     init { if (modelFile.exists()) runCatching { inference=LlmInference.createFromOptions(context, LlmInference.LlmInferenceOptions.builder().setModelPath(modelFile.absolutePath).setMaxTokens(150).setTemperature(0.15f).build()) } }
 
