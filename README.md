@@ -31,17 +31,28 @@ Then open <http://localhost:4173> in a browser. The app is designed to remain us
 
 ## Tier 1 local room
 
-The repository also includes a dependency-free Node HTTP server. It serves the app and exposes a shared in-memory room API:
+The repository also includes a dependency-free Node HTTP server. It serves the app and exposes a shared room API backed by a durable local JSON file:
 
 ```bash
 node server.js
 ```
 
-The terminal prints a nearby-device URL such as `http://192.168.x.x:4173`. Open that URL on the host device and on another phone or laptop connected to the same hotspot. Reports submitted from either browser are posted to the local room and polled into the shared feed every three seconds. No external network or package install is required.
+The terminal prints a nearby-device URL such as `http://192.168.x.x:4173`. Open that URL on the host device and on another phone or laptop connected to the same hotspot. Reports submitted from either browser are posted to the local room and polled into the shared feed every three seconds. No external network or package install is required. Runtime data is stored in `data/humsafar-room.json` and is ignored by Git.
+
+## Tier 2 organizer reporting
+
+The **Organizer Insights** tab adds a post-event view over the persistent room history. It shows total reports, distinct reporters, safety signals, contradictions, category distribution, language mix, and the room timeline. Organizers can export the current room as CSV for spreadsheet analysis or JSON for archival and future integrations.
+
+The server exposes these reporting endpoints:
+
+- `GET /api/analytics` — aggregate room metrics.
+- `GET /api/export.csv` — flat report export.
+- `GET /api/export.json` — room data plus analytics snapshot.
+- `DELETE /api/state` — reset the persistent room intentionally.
 
 ## Scope boundary
 
-This web prototype demonstrates the product loop and interaction design. The Android submission build should replace the browser-side heuristic `inferReport()` function with the on-device Gemma / MediaPipe LLM Inference pipeline described in the MVP specification. The local server is intentionally a Tier 1 hub-and-spoke demo, not a claim of true mesh networking. True multi-hop Nearby Connections mesh, iOS support, persistent backend storage, accounts, and cloud inference remain explicitly out of scope for the hackathon MVP.
+This web prototype demonstrates the product loop and interaction design. The Android submission build should replace the browser-side heuristic `inferReport()` function with the on-device Gemma / MediaPipe LLM Inference pipeline described in the MVP specification. The local server is intentionally a hub-and-spoke demo, not a claim of true mesh networking. True multi-hop Nearby Connections mesh, iOS support, hosted multi-tenant storage, accounts, and cloud inference remain out of scope for the hackathon MVP. Tier 2 persistence is local organizer storage for the prototype, not a production backend.
 
 ## Suggested Android implementation next
 
