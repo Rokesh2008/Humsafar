@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#071b20" />
+  <title>Humsafar — Crowd intelligence, offline</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><div class="eyebrow">OFFLINE CROWD INTELLIGENCE</div><div class="brand-name">humsafar</div></div>
+      </div>
+      <div class="status-pill"><span class="status-dot"></span><span>Airplane mode ready</span></div>
+    </header>
+
+    <main>
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <div class="kicker">EVENT MODE / CITY FEST 2026</div>
+          <h1>Your crowd,<br /><em>thinking together.</em></h1>
+          <p class="hero-lede">Independent observations become one trusted, evidence-backed feed — even when the network disappears.</p>
+          <div class="proof-row"><span class="proof-icon">⌁</span><span>On-device reasoning</span><span class="proof-separator">·</span><span>No cloud. No tower. No guesswork.</span></div>
+        </div>
+        <div class="hero-stat-card">
+          <div class="stat-label">LIVE ROOM</div>
+          <div class="room-name">City Fest / Main Grounds</div>
+          <div class="stat-divider"></div>
+          <div class="stat-grid"><div><strong id="event-count">0</strong><span>fused events</span></div><div><strong id="report-count">0</strong><span>reports processed</span></div><div><strong id="language-count">0</strong><span>languages</span></div></div>
+        </div>
+      </section>
+
+      <nav class="tabs" aria-label="Primary navigation"><button class="tab active" data-view="feed">Crowd Feed <span id="feed-badge">0</span></button><button class="tab" data-view="report">New Report <span class="plus">＋</span></button><button class="tab" data-view="about">How it works</button></nav>
+
+      <section id="feed-view" class="view active-view">
+        <div class="section-heading"><div><div class="section-kicker">VERIFIED SIGNALS</div><h2>What the crowd knows</h2></div><button class="ghost-button" id="clear-button">Reset room</button></div>
+        <div class="feed-layout"><div id="feed-list" class="feed-list"></div><aside class="side-panel"><div class="panel-heading"><span class="pulse-ring"></span>Fusion engine</div><p>Every report is normalized, compared with existing signals, and weighted by independent evidence.</p><div class="engine-steps"><div><b>01</b><span>Translate & classify</span></div><div><b>02</b><span>Match nearby signals</span></div><div><b>03</b><span>Adjust confidence</span></div></div><div class="model-chip"><span class="chip-dot"></span><span>LOCAL MODEL</span><strong>Gemma / int4</strong></div></aside></div>
+      </section>
+
+      <section id="report-view" class="view">
+        <div class="section-heading"><div><div class="section-kicker">ADD A SIGNAL</div><h2>What did you notice?</h2><p class="subcopy">Your report stays on this device and helps the crowd see a clearer picture.</p></div></div>
+        <div class="report-layout"><form id="report-form" class="report-card"><label>YOUR OBSERVATION<textarea id="report-text" required placeholder="e.g. Gate 3 parking is completely full"></textarea></label><div class="form-row"><label>REPORTER<select id="reporter"><option>Reporter 1</option><option>Reporter 2</option><option>Reporter 3</option><option>Reporter 4</option><option>Reporter 5</option><option>Reporter 6</option></select></label><label>LANGUAGE<select id="language"><option value="en">English</option><option value="hi">Hindi</option><option value="ta">Tamil</option><option value="te">Telugu</option></select></label></div><div class="quick-reports"><span>Try a demo signal</span><button type="button" data-fill="Parking at Gate 3 is completely full">Gate 3 parking</button><button type="button" data-fill="North food counter, about 5 minute wait">Food queue</button><button type="button" data-fill="Someone injured near the east entrance, needs help">Safety</button></div><button class="primary-button" type="submit"><span>Submit to the crowd feed</span><span class="button-arrow">→</span></button><div id="form-note" class="form-note" aria-live="polite"></div></form><div class="translation-card"><div class="card-topline"><span class="mini-orbit"></span><span>ON-DEVICE PIPELINE</span></div><h3>From one voice<br />to shared clarity.</h3><div class="pipeline"><div class="pipeline-step"><span>01</span><div><b>Observe</b><small>Raw text or voice</small></div></div><div class="pipeline-line"></div><div class="pipeline-step"><span>02</span><div><b>Understand</b><small>Local model translates</small></div></div><div class="pipeline-line"></div><div class="pipeline-step"><span>03</span><div><b>Verify</b><small>Evidence raises confidence</small></div></div></div></div></div>
+      </section>
+
+      <section id="about-view" class="view"><div class="section-heading"><div><div class="section-kicker">THE IDEA</div><h2>Information that can verify itself.</h2><p class="subcopy">Humsafar is designed for weddings, festivals, stadiums, and any crowded place where cellular networks become unreliable.</p></div></div><div class="about-grid"><div class="about-card dark"><span class="about-number">01</span><h3>Independent reports</h3><p>People describe what they see in their own language. No central dispatcher required.</p></div><div class="about-card"><span class="about-number">02</span><h3>On-device reasoning</h3><p>A small local model translates and classifies observations without sending them to a cloud API.</p></div><div class="about-card warm"><span class="about-number">03</span><h3>Evidence-backed feed</h3><p>Repeated signals grow stronger. Contradictions stay visible instead of being silently erased.</p></div></div><div class="quote-card"><span>“</span><p>Your phone doesn’t just carry information.<br /><strong>It helps verify it.</strong></p></div></section>
+    </main>
+    <footer><span>HUMSAFAR / OPEN INNOVATION</span><span>SESSION ONLY · NO INTERNET REQUIRED</span></footer>
+  </div>
+  <div id="detail-modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-card"><button class="modal-close" id="modal-close">×</button><div class="section-kicker">EVIDENCE TRAIL</div><h2 id="modal-title"></h2><div id="modal-meta" class="modal-meta"></div><div id="modal-evidence" class="evidence-list"></div></div></div>
+  <script src="app.js"></script>
+</body>
+</html>

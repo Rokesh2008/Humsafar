@@ -1,0 +1,51 @@
+const seedReports = [
+  { id:'r_001', reporter:'Reporter 1', text:'Parking at Gate 3 is completely full', language:'en', category:'parking', key:'gate3-parking', canonical:'Gate 3 parking is full', action:'Try Gate 4 parking', confidence:0.55 },
+  { id:'r_002', reporter:'Reporter 2', text:'Gate 3 pe parking bhar gaya hai', language:'hi', category:'parking', key:'gate3-parking', canonical:'Gate 3 parking is full', action:'Try Gate 4 parking', confidence:0.62 },
+  { id:'r_003', reporter:'Reporter 3', text:'Gate 3 la parking full ah iruku, Gate 4 try pannunga', language:'ta', category:'parking', key:'gate3-parking', canonical:'Gate 3 parking is full', action:'Try Gate 4 parking', confidence:0.69 },
+  { id:'r_004', reporter:'Reporter 4', text:'North food counter, about 5 minute wait', language:'en', category:'food', key:'north-food', canonical:'North food counter has a 5 minute wait', action:'Queue at the north counter', confidence:0.55 },
+  { id:'r_005', reporter:'Reporter 5', text:'Gate 3 parking still has some space near the back', language:'hi', category:'parking', key:'gate3-parking', canonical:'Gate 3 parking has some space near the back', action:'Check the rear of Gate 3', confidence:0.48, contradiction:true },
+  { id:'r_006', reporter:'Reporter 6', text:'Someone injured near the east entrance, needs help', language:'en', category:'safety', key:'east-injury', canonical:'Someone needs help near the east entrance', action:'Alert event safety staff immediately', confidence:0.55, urgency:true }
+];
+let reports = JSON.parse(localStorage.getItem('humsafar_reports') || 'null') || seedReports;
+let events = [];
+const languageNames = {en:'English',hi:'Hindi',ta:'Tamil',te:'Telugu'};
+const categoryIcons = {parking:'◒',entry:'↗',food:'◇',washroom:'＋',safety:'!',other:'·'};
+const categories = ['parking','entry','food','washroom','safety','other'];
+
+function inferReport(text){
+  const lower=text.toLowerCase();
+  const language=document.querySelector('#language')?.value || 'en';
+  let category='other', key='other', canonical=text.trim(), action='Keep an eye on this area', urgency=false;
+  if(/injur|hurt|help|danger|fire|lost child|emergency|medical/.test(lower)){category='safety'; key=lower.includes('east')?'east-injury':'safety'; canonical=lower.includes('east')?'Someone needs help near the east entrance':'A safety concern was reported'; action='Alert event safety staff immediately'; urgency=true}
+  else if(/park|parking|gate [0-9]/.test(lower)){category='parking'; const gate=(lower.match(/gate\s*[0-9]/)||['the gate'])[0].replace(/\s+/,' '); key=gate+'-parking'; const full=/full|bhar|bhar gaya|no space|packed/.test(lower); canonical=`${gate.charAt(0).toUpperCase()+gate.slice(1)} parking ${full?'is full':'has some space near the back'}`; action=full?'Try another gate':'Check the rear of the parking area'}
+  else if(/food|counter|queue|wait|meal|snack/.test(lower)){category='food'; key=lower.includes('north')?'north-food':'food'; canonical=lower.includes('north')?'North food counter has a 5 minute wait':'A food counter has a queue'; action='Try another food counter'}
+  else if(/wash|toilet|restroom|bathroom/.test(lower)){category='washroom'; key='washroom'; canonical='A washroom queue was reported'; action='Try the next washroom'}
+  else if(/entry|entrance|door|line|queue/.test(lower)){category='entry'; key='entry'; canonical='An entry queue was reported'; action='Try the next entrance'}
+  return {category,key,canonical,action,urgency,language};
+}
+function recompute(){
+  const grouped={};
+  reports.forEach(r=>{const k=r.key||inferReport(r.text).key;if(!grouped[k]) grouped[k]={key:k,reports:[],confidence:r.confidence||.55,canonical:r.canonical,category:r.category,action:r.action,urgency:r.urgency};grouped[k].reports.push(r);});
+  events=Object.values(grouped).map((g,i)=>{const positive=g.reports.filter(r=>!r.contradiction).length;const contradictions=g.reports.filter(r=>r.contradiction).length;const base=Math.min(.5+.07*positive,.98);const confidence=contradictions?Math.max(.38,base-.12*contradictions):base;const latest=g.reports[g.reports.length-1];return {...g,event_id:'e_'+String(i+1).padStart(3,'0'),confidence,canonical:contradictions&&latest.contradiction?g.reports.find(r=>!r.contradiction)?.canonical:g.canonical,action:contradictions?'Review conflicting reports':g.action};}).sort((a,b)=>b.confidence-a.confidence);
+  render();
+}
+function render(){
+  const list=document.querySelector('#feed-list');
+  document.querySelector('#event-count').textContent=events.length;
+  document.querySelector('#report-count').textContent=reports.length;
+  document.querySelector('#language-count').textContent=new Set(reports.map(r=>r.language)).size;
+  document.querySelector('#feed-badge').textContent=events.length;
+  if(!events.length){list.innerHTML='<div class="feed-card"><p>No signals yet. Add the first observation from the New Report tab.</p></div>';return}
+  list.innerHTML=events.map(e=>{const langs=[...new Set(e.reports.map(r=>r.language))];return `<article class="feed-card ${e.urgency?'urgency':''}" data-event="${e.event_id}"><div class="feed-top"><div class="category"><span class="category-icon">${categoryIcons[e.category]||'·'}</span>${e.category}</div><div class="confidence">${Math.round(e.confidence*100)}% confidence</div></div><div class="event-statement">${escapeHtml(e.canonical)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(e.confidence*100)}%"></div></div><div class="feed-bottom"><div class="evidence-count">Confirmed by <strong>${e.reports.length}</strong> ${e.reports.length===1?'report':'independent reports'}</div><div class="languages">${langs.map(l=>`<span class="lang">${languageNames[l]||l}</span>`).join('')}</div></div></article>`}).join('');
+  document.querySelectorAll('.feed-card[data-event]').forEach(card=>card.addEventListener('click',()=>openDetail(events.find(e=>e.event_id===card.dataset.event))));
+}
+function escapeHtml(str){return str.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function openDetail(event){document.querySelector('#modal-title').textContent=event.canonical;document.querySelector('#modal-meta').textContent=`${event.category.toUpperCase()} · ${Math.round(event.confidence*100)}% CONFIDENCE · ${event.reports.length} REPORTS`;document.querySelector('#modal-evidence').innerHTML=event.reports.map(r=>`<div class="evidence-item"><p>${escapeHtml(r.text)}</p><small>${r.reporter}<br>${languageNames[r.language]||r.language}</small></div>`).join('');document.querySelector('#detail-modal').classList.remove('hidden')}
+function submitReport(e){e.preventDefault();const text=document.querySelector('#report-text').value.trim();if(!text)return;const detected=inferReport(text);const reporter=document.querySelector('#reporter').value;reports.push({id:'r_'+String(reports.length+1).padStart(3,'0'),reporter,text,language:detected.language,category:detected.category,key:detected.key,canonical:detected.canonical,action:detected.action,confidence:.55,urgency:detected.urgency});localStorage.setItem('humsafar_reports',JSON.stringify(reports));document.querySelector('#report-text').value='';document.querySelector('#form-note').textContent='Signal fused into the crowd feed.';recompute();setTimeout(()=>{document.querySelector('[data-view="feed"]').click();document.querySelector('#form-note').textContent=''},750)}
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.view').forEach(v=>v.classList.remove('active-view'));tab.classList.add('active');document.querySelector('#'+tab.dataset.view+'-view').classList.add('active-view')}));
+document.querySelector('#report-form').addEventListener('submit',submitReport);
+document.querySelectorAll('[data-fill]').forEach(b=>b.addEventListener('click',()=>{document.querySelector('#report-text').value=b.dataset.fill;document.querySelector('#report-text').focus()}));
+document.querySelector('#clear-button').addEventListener('click',()=>{reports=[];localStorage.removeItem('humsafar_reports');recompute()});
+document.querySelector('#modal-close').addEventListener('click',()=>document.querySelector('#detail-modal').classList.add('hidden'));
+document.querySelector('#detail-modal').addEventListener('click',e=>{if(e.target.id==='detail-modal')e.currentTarget.classList.add('hidden')});
+recompute();
