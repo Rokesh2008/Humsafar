@@ -21,7 +21,7 @@ The seeded demo data is intentionally aligned with the submission script: three 
 
 ## Run locally
 
-Serve the directory with any static web server, for example:
+For the single-device fallback, serve the directory with any static web server, for example:
 
 ```bash
 python3 -m http.server 4173
@@ -29,9 +29,19 @@ python3 -m http.server 4173
 
 Then open <http://localhost:4173> in a browser. The app is designed to remain usable without internet after the files are available locally.
 
+## Tier 1 local room
+
+The repository also includes a dependency-free Node HTTP server. It serves the app and exposes a shared in-memory room API:
+
+```bash
+node server.js
+```
+
+The terminal prints a nearby-device URL such as `http://192.168.x.x:4173`. Open that URL on the host device and on another phone or laptop connected to the same hotspot. Reports submitted from either browser are posted to the local room and polled into the shared feed every three seconds. No external network or package install is required.
+
 ## Scope boundary
 
-This web prototype demonstrates the product loop and interaction design. The Android submission build should replace the browser-side heuristic `inferReport()` function with the on-device Gemma / MediaPipe LLM Inference pipeline described in the MVP specification. True multi-hop Nearby Connections mesh, iOS support, persistent backend storage, accounts, and cloud inference remain explicitly out of scope for the hackathon MVP.
+This web prototype demonstrates the product loop and interaction design. The Android submission build should replace the browser-side heuristic `inferReport()` function with the on-device Gemma / MediaPipe LLM Inference pipeline described in the MVP specification. The local server is intentionally a Tier 1 hub-and-spoke demo, not a claim of true mesh networking. True multi-hop Nearby Connections mesh, iOS support, persistent backend storage, accounts, and cloud inference remain explicitly out of scope for the hackathon MVP.
 
 ## Suggested Android implementation next
 
