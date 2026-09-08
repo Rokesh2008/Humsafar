@@ -1,0 +1,10 @@
+{
+  "name": "Humsafar — Offline Crowd Intelligence",
+  "short_name": "Humsafar",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8f3",
+  "theme_color": "#09292b",
+  "description": "Evidence-backed crowd intelligence for places where the network disappears.",
+  "icons": []
+}

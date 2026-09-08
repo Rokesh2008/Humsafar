@@ -14,6 +14,9 @@ This repository contains a zero-dependency browser prototype that demonstrates t
 - Multilingual/demo report handling for parking, food, washroom, entry, safety, and other observations.
 - Contradiction handling that lowers confidence and keeps the conflict visible.
 - Evidence detail modal showing the reports behind each fused event.
+- Browser voice dictation using the device's available SpeechRecognition implementation, with language-aware hints for English, Hindi, and Tamil.
+- Installable shell metadata and a service worker for offline reload after the app has been opened once.
+- Room-link sharing from the hero card on browsers that support the native share sheet or clipboard copy.
 - About screen explaining the on-device reasoning thesis.
 - No backend, cloud LLM call, account, or external API.
 
@@ -49,6 +52,10 @@ The server exposes these reporting endpoints:
 - `GET /api/export.csv` — flat report export.
 - `GET /api/export.json` — room data plus analytics snapshot.
 - `DELETE /api/state` — reset the persistent room intentionally.
+
+## Rehearsal improvements
+
+The reset action now records an explicit cleared-room flag locally so the next synchronization does not silently repopulate the demo seed data. Voice capture is progressive enhancement: unsupported browsers keep the typed report flow, while supported browsers place the transcript into the editable report field before submission. The service worker caches only the static app shell; room APIs remain live and local to the organizer's device.
 
 ## Scope boundary
 
