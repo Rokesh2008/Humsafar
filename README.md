@@ -4,9 +4,15 @@
 
 Humsafar is an offline-first crowd intelligence MVP for crowded places. It turns independent, multilingual observations into one evidence-backed feed with local fusion logic, confidence scoring, contradiction visibility, and evidence trails.
 
+## Native Android implementation
+
+The intended submission stack is now scaffolded under [`android/`](android/): Kotlin, Jetpack Compose, a ViewModel with plain in-memory data classes, Android `SpeechRecognizer`, and the official MediaPipe GenAI dependency `com.google.mediapipe:tasks-genai:0.10.27`. The app has three native surfaces—Crowd Feed, New Report, and Organizer Insights—and starts in a deterministic fallback mode when the large model file is not yet present. This makes UI and fusion rehearsal possible before the device-specific model-loading spike is complete.
+
+To run it, open `android/` in Android Studio and sync Gradle. For real on-device inference, place the compatible quantized `.task` model at `filesDir/humsafar/gemma-3-1b-it-int4.task` on the test phone; the app will automatically initialize `LlmInference` when that file exists. The official Google guide currently recommends Gemma 3 1B int4 for the MediaPipe path and notes that MediaPipe LLM Inference is maintenance-only in favor of LiteRT-LM, so the dependency is isolated in `FusionEngine` for a later runtime swap if the competition requirements change.
+
 ## Current MVP
 
-This repository contains a zero-dependency browser prototype that demonstrates the guaranteed Tier 0 experience:
+This repository contains a zero-dependency browser prototype that demonstrates the guaranteed Tier 0 experience and serves as the Tier 1 rehearsal fallback:
 
 - Crowd Feed with fused events, category icons, confidence bars, evidence counts, and language badges.
 - New Report form with reporter and language selection.

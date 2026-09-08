@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.Humsafar" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#ED755F</item>
+        <item name="android:navigationBarColor">#F7F8F3</item>
+        <item name="android:statusBarColor">#F7F8F3</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

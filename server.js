@@ -7,7 +7,7 @@ const PORT = Number(process.env.PORT || 4173);
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'humsafar-room.json');
-const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
+const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8'};
 
 fs.mkdirSync(DATA_DIR, {recursive:true});
 const defaultRoom = () => ({roomId:'city-fest-main-grounds', roomName:'City Fest / Main Grounds', createdAt:new Date().toISOString(), reports:[]});
